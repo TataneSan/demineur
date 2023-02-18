@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<!-- saved from url=(0051)file:///C:/Users/antoine/Desktop/geek/4-jsgrid.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		
+		<title>Demineur</title>
+		<style>
+			table td {
+			    border: 5px solid#0f4;
+				width: 60px;
+				height: 60px;
+				background-color: #f51455;
+				text-align: center;
+				font-size: x-large;
+				color: white;
+			}
+
+			table {
+				border-collapse: collapse;
+				margin:auto;
+			}
+			body{
+				background-image:url('petitchats.jpg');
+			}
+			.bomb{
+			
+				background-image:url("007.png");
+				background-size: 60px 60px;
+				background-repeat:no-repeat;
+			}
+			
+			.paint{
+				background-color:#555;
+				font-size:0;
+				background-image:none;
+			}
+					
+			.flag.paint{
+					background-image:url("danger.png");
+					background-size: 60px 60px;
+					background-repeat:no-repeat;
+				
+			}
+			
+			*/
+			.row2.col4{
+				background-color:yellow;
+			}
+			#nbBomb{
+				color:white;
+				font-size:xx-large;
+			}
+
+		</style>
+		<script src="./Demineur_files/jquery-1.10.2.js"></script>
+	</head>
+	<body>
+
+		<!-- HTML style comment - table tag -->
+		<table>
+		</table>
+		<div id="info">
+			<span id="perdu"></span>
+			<span id="nbBomb"></span>
+			<button id="rejouer">Play Again</button>
+		</div>
+	
+		<script>
+
+			var width = 10; 
+			var height = 10;
+             drawGrid();
+			 countAdjacentBombs();
+			 
+			 $('#nbBomb').text("Il y a "+$('.bomb').size()+" bombes");
+			 
+			 $('#rejouer').click(
+				 function(){
+					window.location.reload();
+				 }
+			 );
+			                                                      
+			 
+			 
+			 
+			 
+			 
+			//fonction qui dessigne la grille
+			 function drawGrid(){
+					// get DOM reference to table via selector table
+					var table = $('table');
+					for (x = 0; x < height; x++) { 
+
+						// create tr element
+						var newRow = $('<tr></tr>');
+
+						for (y = 0; y < width; y++) { 
+
+							// insert cell in row 	
+							var cell = $('<td></td>');
+							// Système de cordonées
+							cell.addClass('row'+x);
+							cell.addClass('col'+y);
+							
+							
+							
+							
+							
+							//nombre au hasardard comprit entre 0 et 1 
+							var alea = Math.random();
+												
+							//ajout de bomb
+							if(alea<0.12){
+								cell.addClass('Bombe');
+							}
+							
+							//ajout d'une couche de peinture
+							cell.addClass('paint');
+							
+		/*            
+		
+							////// highlight one particular cell by modifying css property via jquery
+							//if(x==4 || y==2 
+							var degrade = 15*x+10*y;
+							
+								cell.css( 'background-color', 'rgb(0,'+degrade+',0)');
+						//	}
+		*/
+							newRow.append(cell);
+							
+							//clic gauche 
+							cell.click(
+								function(){
+									if(!$(this).hasClass('flag')){
+										//alert('clic');
+										$(this).removeClass('paint');
+										
+										if($(this).text()=="0"){
+					
+											explodeZeros($(this));
+										}
+										//Si c'est une bombe -->perdu
+										if($(this).hasClass('Bombe')){
+											//Alert('Mort !');
+											$('#perdu').text("GAME OVER")
+											$('.bomb').removeClass('paint');
+										}	
+										//sinon gagné?
+										else if($('.bomb').size()==$('.paint').size()){
+											//alert("Bravo !");
+											$('#gagne').text("Bravo !");
+										}
+									}
+								}
+							);//fin clic gauche
+							
+							
+							//clic droit
+							cell.mousedown(function (e) {
+								if(e.button==2){
+									//alert("clic droit");
+									$(this).toggleClass('flag');//ajout de drapeau 
+									var nbBombRest =$('.bomb').size()-$('.flag').size();
+									$('#nbBomb').text("Il reste "+nbBombRest+" bombes");
+								}
+								
+							});//fin clic droit
+							
+						}
+						/// insert row in table 
+						table.append(newRow);
+					} 
+                   //fin de drawGrid
+					}
+					        // fonction qui permet de calculer, pour chaque case de la grille qui n'est pas une bombe
+        // le nombre de bombes adjacentes
+        function countAdjacentBombs(){
+                for (x = 0; x < height; x++){
+                        for (y = 0; y < width; y++){
+				// si la case sur laquelle on est (x;y) n'est pas une bombe, alors...
+                                if( !$('.row'+x+'.col'+y).hasClass('bomb') ){
+
+                                        var count = 0; // compteur de bombes
+
+                                        if($('.row'+(x-1)+'.col'+(y-1)).hasClass('bomb')){ count++;}
+                                        if($('.row'+(x-1)+'.col'+y).hasClass('bomb')){ count++;}
+                                        if($('.row'+(x-1)+'.col'+(y+1)).hasClass('bomb')){ count++;}
+                                        if($('.row'+x+'.col'+(y+1)).hasClass('bomb')){ count++;}
+                                        if($('.row'+x+'.col'+(y-1)).hasClass('bomb')){ count++;}
+                                        if($('.row'+(x+1)+'.col'+(y-1)).hasClass('bomb')){ count++;}
+                                        if($('.row'+(x+1)+'.col'+y).hasClass('bomb')){ count++;}
+                                        if($('.row'+(x+1)+'.col'+(y+1)).hasClass('bomb')){ count++;}
+
+                                        // on met la valeur du compteur dans la case (x;y)
+                                        $('.row'+x+'.col'+y).text(count); 
+                                }
+                        }
+                } 
+        } // fin de la fonction countAdjacentBombs
+		
+	function explodeZeros(cell){
+		var col = parseInt(cell.attr('class').match(/\bcol(\d+)\b/)[1]);
+		var row = parseInt(cell.attr('class').match(/\brow(\d+)\b/)[1]);
+		var selectors = [
+			'.col'+(col-1)+'.row'+(row-1),
+			'.col'+col+'.row'+(row-1),
+			'.col'+(col+1)+'.row'+(row-1),
+			'.col'+(col-1)+'.row'+row,
+			'.col'+(col+1)+'.row'+row,
+			'.col'+(col-1)+'.row'+(row+1),
+			'.col'+col+'.row'+(row+1),
+			'.col'+(col+1)+'.row'+(row+1)
+		];
+		
+		$.each(selectors, function(key, value){
+			var current_cell = $(selectors[key]);
+			if(current_cell.text() == "0" && current_cell.hasClass('paint')){
+				current_cell.removeClass('paint');
+				explodeZeros(current_cell);
+			} else {
+				current_cell.removeClass('paint');		
+			}		
+		});
+	}
+
+		//désactive le menu
+		 $(document).ready(function(){
+        $(document).bind('contextmenu', function(e){ return false; });
+    });
+	</script>
+</body>
+</html>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
